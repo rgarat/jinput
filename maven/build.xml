@@ -1,0 +1,76 @@
+<project name="maven" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+	
+	<property name="mavenrepo"			value="file://m2repo" />
+	<property name="mavenrepoId"		value="tmprepoid" />
+	
+	<target name="install">
+		<antcall target="execute">
+			<param name="mvncommand" value="org.apache.maven.plugins:maven-install-plugin:2.3.1:install-file"/>
+		</antcall>
+	</target>
+	
+	<target name="deploy">
+		<antcall target="execute">
+			<param name="mvncommand" value="org.apache.maven.plugins:maven-gpg-plugin:1.1:sign-and-deploy-file"/>
+		</antcall>
+	</target>
+	
+	<target name="execute">
+		
+		<!-- parent.pom -->
+		
+		<artifact:mvn>
+			<arg value="${mvncommand}" />
+			<arg value="-Durl=${mavenrepo}" />
+			<arg value="-DrepositoryId=${mavenrepoId}" />
+			<arg value="-DpomFile=jinput-parent.pom" />
+			<arg value="-Dfile=jinput-parent.pom" />
+            <arg value="-Pjinputgpg" />
+        </artifact:mvn>  
+            
+		<!-- jinput.jar -->    
+		
+		<artifact:mvn>
+			<arg value="${mvncommand}" />
+			<arg value="-Durl=${mavenrepo}" />
+			<arg value="-DrepositoryId=${mavenrepoId}" />
+			<arg value="-DpomFile=jinput.pom" />
+			<arg value="-Dfile=jinput.jar" />
+            <arg value="-Pjinputgpg" />
+		</artifact:mvn>
+		
+		<!-- jinput natives -->    
+				
+		<artifact:mvn>
+			<arg value="${mvncommand}" />
+			<arg value="-Durl=${mavenrepo}" />
+			<arg value="-DrepositoryId=${mavenrepoId}" />
+			<arg value="-DpomFile=jinput-platform.pom" />
+			<arg value="-Dfile=jinput-platform-natives-win.jar" />
+			<arg value="-Dclassifier=natives-win" />
+            <arg value="-Pjinputgpg" />
+		</artifact:mvn>
+		
+		<artifact:mvn>
+			<arg value="${mvncommand}" />
+			<arg value="-Durl=${mavenrepo}" />
+			<arg value="-DrepositoryId=${mavenrepoId}" />
+			<arg value="-DpomFile=jinput-platform.pom" />
+			<arg value="-Dfile=jinput-platform-natives-linux.jar" />
+			<arg value="-Dclassifier=natives-linux" />
+            <arg value="-Pjinputgpg" />
+		</artifact:mvn>
+		
+		<artifact:mvn>
+			<arg value="${mvncommand}" />
+			<arg value="-Durl=${mavenrepo}" />
+			<arg value="-DrepositoryId=${mavenrepoId}" />
+			<arg value="-DpomFile=jinput-platform.pom" />
+			<arg value="-Dfile=jinput-platform-natives-mac.jar" />
+			<arg value="-Dclassifier=natives-mac" />
+            <arg value="-Pjinputgpg" />
+		</artifact:mvn>
+		
+	</target>
+	
+</project>

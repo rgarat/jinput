@@ -1,0 +1,18 @@
+<project>
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>net.java.jinput</groupId>
+		<artifactId>parent</artifactId>
+		<version>@VERSION@</version>
+	</parent>
+	<groupId>net.java.jinput</groupId>
+	<artifactId>jinput-platform</artifactId>
+	<packaging>jar</packaging>
+	<name>JInput - Java Game Controller API</name>
+	<version>@VERSION@</version>
+	<description>JInput - Java Game Controller API</description>
+	<scm>
+		<url>http://java.net/projects/jinput/sources/svn/show</url>
+		<connection>https://svn.java.net/svn/jinput~svn </connection>
+	</scm>
+</project>

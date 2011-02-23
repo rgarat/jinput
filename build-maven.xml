@@ -1,65 +1,94 @@
 <project name="Sun Games Initiative Client Technologies - Maven build" basedir="." default="all" xmlns:artifact="urn:maven-artifact-ant">
-	<property name="dist" location="dist"/>
-	<property name="maven.dist" location="dist-maven"/>
-	
-    <target name="init">
-    	<delete dir="${maven.dist}" quiet="true" failonerror="false" taskname="cleaning temp folder" />
-    	<mkdir dir="${maven.dist}"/>
-    </target>
-	
+	<property name="dist" location="dist" />
+	<property name="maven" location="maven" />
+	<property name="maven.dist" location="dist-maven" />
+	<property name="maven-version" value="2.0.3-SNAPSHOT" />
+
+	<target name="init">
+		<delete dir="${maven.dist}" quiet="true" failonerror="false" taskname="cleaning temp folder" />
+		<mkdir dir="${maven.dist}" />
+	</target>
+
+	<target name="jinputartifact" depends="init">
+		<copy todir="${maven.dist}/">
+			<fileset dir="${dist}">
+				<include name="jinput.jar" />
+			</fileset>
+		</copy>
+	</target>
+
 	<target name="sourceartifact" depends="init">
 		<jar jarfile="${maven.dist}/jinput-sources.jar" compress="true" duplicate="preserve">
 			<fileset dir="coreAPI/src/java">
-				<include name="**/*"/>
-				<exclude name="**/test/*"/>
-				<exclude name="**/example/*"/>
+				<include name="**/*" />
+				<exclude name="**/test/*" />
+				<exclude name="**/example/*" />
 			</fileset>
 			<fileset dir="plugins/linux/src/java">
-				<include name="**/*"/>
+				<include name="**/*" />
 			</fileset>
 			<fileset dir="plugins/OSX/src/java">
-				<include name="**/*"/>
+				<include name="**/*" />
 			</fileset>
 			<fileset dir="plugins/awt/src/">
-				<include name="**/*"/>
+				<include name="**/*" />
 			</fileset>
 			<fileset dir="plugins/windows/src/java">
-				<include name="**/*"/>
+				<include name="**/*" />
 			</fileset>
 			<fileset dir="plugins/wintab/src/java">
-				<include name="**/*"/>
+				<include name="**/*" />
 			</fileset>
 		</jar>
 	</target>
-	
+
 	<target name="javadocartifact" depends="init">
 		<jar jarfile="${maven.dist}/jinput-javadoc.jar" compress="true" duplicate="preserve">
 			<fileset dir="coreAPI/apidocs">
-				<include name="**/*"/>
+				<include name="**/*" />
 			</fileset>
 		</jar>
 	</target>
-	
+
 	<target name="nativeartifacts" depends="init">
 		<jar destfile="${maven.dist}/jinput-platform-natives-win.jar">
-			<fileset dir="dist/">
-				<include name="**/*.dll"/>
+			<fileset dir="${dist}">
+				<include name="**/*.dll" />
 			</fileset>
 		</jar>
 		<jar destfile="${maven.dist}/jinput-platform-natives-linux.jar">
-			<fileset dir="dist/">
-				<include name="**/*.so"/>
+			<fileset dir="${dist}">
+				<include name="**/*.so" />
 			</fileset>
 		</jar>
 		<jar destfile="${maven.dist}/jinput-platform-natives-mac.jar">
-			<fileset dir="dist/">
-				<include name="**/*.jnilib"/>
+			<fileset dir="${dist}">
+				<include name="**/*.jnilib" />
 			</fileset>
 		</jar>
 	</target>
-	
-	<target name="mavendist" depends="sourceartifact, javadocartifact, nativeartifacts">
-	
+
+	<target name="copymavenpoms">
+		<copy todir="${maven.dist}">
+			<fileset dir="${maven}">
+				<include name="*.pom" />
+			</fileset>
+			<filterset>
+				<filter token="VERSION" value="${maven-version}" />
+			</filterset>
+		</copy>
+	</target>
+
+	<target name="copymavendeploybuild">
+		<copy todir="${maven.dist}">
+			<fileset dir="${maven}">
+				<include name="build.xml" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="mavendist" depends="jinputartifact, sourceartifact, javadocartifact, nativeartifacts, copymavenpoms, copymavendeploybuild">
+
 	</target>
 
 </project>
