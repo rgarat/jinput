@@ -2,7 +2,9 @@
 	<property name="dist" location="dist" />
 	<property name="maven" location="maven" />
 	<property name="maven.dist" location="dist-maven" />
+	<property name="lib" location="lib" />
 	<property name="maven-version" value="2.0.3-SNAPSHOT" />
+	
 
 	<target name="init">
 		<delete dir="${maven.dist}" quiet="true" failonerror="false" taskname="cleaning temp folder" />
@@ -87,7 +89,15 @@
 		</copy>
 	</target>
 
-	<target name="mavendist" depends="jinputartifact, sourceartifact, javadocartifact, nativeartifacts, copymavenpoms, copymavendeploybuild">
+	<target name="copymavenanttask">
+		<copy todir="${maven.dist}">
+			<fileset dir="${lib}">
+				<include name="maven-ant-tasks-2.1.0.jar" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="mavendist" depends="jinputartifact, sourceartifact, javadocartifact, nativeartifacts, copymavenpoms, copymavendeploybuild, copymavenanttask">
 
 	</target>
 
