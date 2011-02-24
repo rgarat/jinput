@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 
 <project name="Sun Games Initiative Client Technologies" basedir="." default="all" xmlns:artifact="urn:maven-artifact-ant">
+	
+	<property name="version" value="2.0.3-SNAPSHOT" />
+	
     <target name="init">
         <!-- If we are running in windows, set dx8 property to true -->
         <condition property="windows" >
@@ -241,7 +244,7 @@
 	
 	
 
-	<target name="sourceartifact" depends="init">
+	<target name="sourceartifact" depends="dist">
 		<jar jarfile="dist/jinput-sources.jar" compress="true" duplicate="preserve">
 			<fileset dir="coreAPI/src/java">
 				<include name="**/*" />
@@ -266,7 +269,7 @@
 		</jar>
 	</target>
 
-	<target name="javadocartifact" depends="init">
+	<target name="javadocartifact" depends="javadoc">
 		<jar jarfile="dist/jinput-javadoc.jar" compress="true" duplicate="preserve">
 			<fileset dir="coreAPI/apidocs">
 				<include name="**/*" />
@@ -274,7 +277,7 @@
 		</jar>
 	</target>
 
-	<target name="nativeartifacts" depends="init">
+	<target name="nativeartifacts" depends="dist">
 		<jar destfile="dist/jinput-platform-natives-win.jar">
 			<fileset dir="dist">
 				<include name="**/*.dll" />
@@ -292,13 +295,13 @@
 		</jar>
 	</target>
 
-	<target name="copymavenpoms">
+	<target name="copymavenpoms" depends="dist">
 		<copy todir="dist">
 			<fileset dir="maven">
 				<include name="*.pom" />
 			</fileset>
 			<filterset>
-				<filter token="VERSION" value="${maven-version}" />
+				<filter token="VERSION" value="${version}" />
 			</filterset>
 		</copy>
 	</target>
@@ -307,7 +310,7 @@
 	<target name="mavendist" depends="sourceartifact, javadocartifact, nativeartifacts, copymavenpoms">
 	</target>
 	
-	<property name="repository.url" value="file://dist/m2repo" />
+	<property name="repository.url" value="file:///tmp/m2repo" />
 	<property name="repository.id" value="tmprepoid" />
 	
 	
@@ -363,7 +366,6 @@
 		<path id="maven-ant-tasks.classpath" path="lib/maven-ant-tasks-2.1.0.jar" />
 		<typedef resource="org/apache/maven/artifact/ant/antlib.xml" uri="urn:maven-artifact-ant"
 		             classpathref="maven-ant-tasks.classpath"/>
-		<artifact:install-provider artifactId="wagon-ssh" version="1.0-beta-2"/>
 		
 		
 		<!-- parent.pom -->
