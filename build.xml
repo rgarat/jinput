@@ -238,63 +238,187 @@
 		</tar>
 	</target>
 	
-	<target name="install" description="Installs jinput in to local mvn repo">
-		<path id="maven-ant-tasks.classpath" path="lib/maven-ant-tasks-2.1.0.jar" />
-	    <typedef resource="org/apache/maven/artifact/ant/antlib.xml" uri="urn:maven-artifact-ant"
-	             classpathref="maven-ant-tasks.classpath"/>
-		
-		<artifact:pom id="jinputpom" groupId="net.java.games" artifactId="jinput" version="2.0.3-SNAPSHOT">
-		</artifact:pom>
-		<artifact:writepom pomRefId="jinputpom" file="dist/pom.xml"/>
-		
-		<artifact:pom id="jinputpomfile" file="dist/pom.xml" />
-		
-		<delete file="dist/jinput-windows-natives.zip"/>
-		<zip destfile="dist/jinput-windows-natives.zip">
-			<fileset dir="dist/">
-				<include name="**/*.dll"/>
+	
+	
+
+	<target name="sourceartifact" depends="init">
+		<jar jarfile="dist/jinput-sources.jar" compress="true" duplicate="preserve">
+			<fileset dir="coreAPI/src/java">
+				<include name="**/*" />
+				<exclude name="**/test/*" />
+				<exclude name="**/example/*" />
 			</fileset>
-		</zip>
-		
-		<delete file="dist/jinput-linux-natives.zip"/>
-		<zip destfile="dist/jinput-linux-natives.zip">
-			<fileset dir="dist/">
-				<include name="**/*.so"/>
+			<fileset dir="plugins/linux/src/java">
+				<include name="**/*" />
 			</fileset>
-		</zip>
-		
-		<delete file="dist/jinput-osx-natives.jar"/>
-		<zip destfile="dist/jinput-osx-natives.zip" >
-			<fileset dir="dist/">
-				<include name="**/*.jnilib"/>
+			<fileset dir="plugins/OSX/src/java">
+				<include name="**/*" />
 			</fileset>
-		</zip>
-		
-		<artifact:install file="dist/jinput.jar">
-			<pom refid="jinputpomfile" />
-			<attach file="dist/jinput-windows-natives.zip" classifier="windows-natives" type="zip"/>
-			<attach file="dist/jinput-linux-natives.zip" classifier="linux-natives" type="zip"/>
-			<attach file="dist/jinput-osx-natives.zip" classifier="osx-natives" type="zip"/>
-		</artifact:install>
+			<fileset dir="plugins/awt/src/">
+				<include name="**/*" />
+			</fileset>
+			<fileset dir="plugins/windows/src/java">
+				<include name="**/*" />
+			</fileset>
+			<fileset dir="plugins/wintab/src/java">
+				<include name="**/*" />
+			</fileset>
+		</jar>
+	</target>
+
+	<target name="javadocartifact" depends="init">
+		<jar jarfile="dist/jinput-javadoc.jar" compress="true" duplicate="preserve">
+			<fileset dir="coreAPI/apidocs">
+				<include name="**/*" />
+			</fileset>
+		</jar>
+	</target>
+
+	<target name="nativeartifacts" depends="init">
+		<jar destfile="dist/jinput-platform-natives-win.jar">
+			<fileset dir="dist">
+				<include name="**/*.dll" />
+			</fileset>
+		</jar>
+		<jar destfile="dist/jinput-platform-natives-linux.jar">
+			<fileset dir="dist">
+				<include name="**/*.so" />
+			</fileset>
+		</jar>
+		<jar destfile="dist/jinput-platform-natives-mac.jar">
+			<fileset dir="dist">
+				<include name="**/*.jnilib" />
+			</fileset>
+		</jar>
+	</target>
+
+	<target name="copymavenpoms">
+		<copy todir="dist">
+			<fileset dir="maven">
+				<include name="*.pom" />
+			</fileset>
+			<filterset>
+				<filter token="VERSION" value="${maven-version}" />
+			</filterset>
+		</copy>
+	</target>
+
+	
+	<target name="mavendist" depends="sourceartifact, javadocartifact, nativeartifacts, copymavenpoms">
 	</target>
 	
-	<target name="mvndeploy" depends="install" description="Installs jinput in to local mvn repo">
+	<property name="repository.url" value="file://dist/m2repo" />
+	<property name="repository.id" value="tmprepoid" />
+	
+	
+	<target name="mvndeploy-old" depends="mavendist" description="Installs jinput in to local mvn repo">
+		<path id="maven-ant-tasks.classpath" path="lib/maven-ant-tasks-2.1.0.jar" />
+			    <typedef resource="org/apache/maven/artifact/ant/antlib.xml" uri="urn:maven-artifact-ant"
+			             classpathref="maven-ant-tasks.classpath"/>
 		<artifact:install-provider artifactId="wagon-ssh" version="1.0-beta-2"/>
 		
-		<artifact:pom id="jinputpom" groupId="net.java.games" artifactId="jinput" version="2.0.2">
-		</artifact:pom>
-		<artifact:writepom pomRefId="jinputpom" file="dist/pom.xml"/>
+		<artifact:pom id="jinputparentpom" file="dist/jinput-parent.pom" />
+		<artifact:deploy file="dist/jinput-parent.pom" >
+		    <remoteRepository url="${repository.url}">
+				<authentication username="${repository.username}" password="${repository.password}"/>
+		    </remoteRepository>
+			<pom refid="jinputparentpom" />
+		</artifact:deploy>
 		
-		<artifact:pom id="jinputpomfile" file="dist/pom.xml" />
-		
+		<artifact:pom id="jinputpom" file="dist/jinput.pom" />
 		<artifact:deploy file="dist/jinput.jar">
 		    <remoteRepository url="${repository.url}">
 				<authentication username="${repository.username}" password="${repository.password}"/>
 		    </remoteRepository>
-			<pom refid="jinputpomfile" />
-			<attach file="dist/jinput-windows-natives.zip" classifier="windows-natives" type="zip"/>
-			<attach file="dist/jinput-linux-natives.zip" classifier="linux-natives" type="zip"/>
-			<attach file="dist/jinput-osx-natives.zip" classifier="osx-natives" type="zip"/>
+			<pom refid="jinputpom" />
+			<attach file="dist/jinput-sources.jar" classifier="sources" type="jar"/>
+			<attach file="dist/jinput-javadoc.jar" classifier="javadoc" type="jar"/>
 		</artifact:deploy>
+		
+		<artifact:pom id="jinputplatformpom" file="dist/jinput-platform.pom" />
+		<artifact:deploy file="dist/jinput-platform.pom">
+		    <remoteRepository url="${repository.url}">
+				<authentication username="${repository.username}" password="${repository.password}"/>
+		    </remoteRepository>
+			<pom refid="jinputplatformpom" />
+			<attach file="dist/jinput-platform-natives-win.jar" classifier="natives-win" type="jar"/>
+			<attach file="dist/jinput-platform-natives-linux.jar" classifier="natives-linux" type="jar"/>
+			<attach file="dist/jinput-platform-natives-mac.jar" classifier="natives-mac" type="jar"/>
+		</artifact:deploy>
+	</target>	
+
+	<target name="mvninstall" depends="mavendist">
+		<antcall target="execute">
+			<param name="mvncommand" value="org.apache.maven.plugins:maven-install-plugin:2.3.1:install-file" />
+		</antcall>
+	</target>
+
+	<target name="mvndeploy" depends="mavendist">
+		<antcall target="execute">
+			<param name="mvncommand" value="org.apache.maven.plugins:maven-gpg-plugin:1.1:sign-and-deploy-file" />
+		</antcall>
+	</target>
+	
+	<target name="execute" >
+		<path id="maven-ant-tasks.classpath" path="lib/maven-ant-tasks-2.1.0.jar" />
+		<typedef resource="org/apache/maven/artifact/ant/antlib.xml" uri="urn:maven-artifact-ant"
+		             classpathref="maven-ant-tasks.classpath"/>
+		<artifact:install-provider artifactId="wagon-ssh" version="1.0-beta-2"/>
+		
+		
+		<!-- parent.pom -->
+
+		<artifact:mvn>
+			<arg value="${mvncommand}" />
+			<arg value="-Durl=${repository.url}" />
+			<arg value="-DrepositoryId=${repository.id}" />
+			<arg value="-DpomFile=dist/jinput-parent.pom" />
+			<arg value="-Dfile=dist/jinput-parent.pom" />
+			<arg value="-Pjinputgpg" />
+		</artifact:mvn>
+
+		<!-- jinput.jar -->
+
+		<artifact:mvn>
+			<arg value="${mvncommand}" />
+			<arg value="-Durl=${repository.url}" />
+			<arg value="-DrepositoryId=${repository.id}" />
+			<arg value="-DpomFile=dist/jinput.pom" />
+			<arg value="-Dfile=dist/jinput.jar" />
+			<arg value="-Pjinputgpg" />
+		</artifact:mvn>
+
+		<!-- jinput natives -->
+
+		<artifact:mvn>
+			<arg value="${mvncommand}" />
+			<arg value="-Durl=${repository.url}" />
+			<arg value="-DrepositoryId=${repository.id}" />
+			<arg value="-DpomFile=dist/jinput-platform.pom" />
+			<arg value="-Dfile=dist/jinput-platform-natives-win.jar" />
+			<arg value="-Dclassifier=natives-win" />
+			<arg value="-Pjinputgpg" />
+		</artifact:mvn>
+
+		<artifact:mvn>
+			<arg value="${mvncommand}" />
+			<arg value="-Durl=${repository.url}" />
+			<arg value="-DrepositoryId=${repository.id}" />
+			<arg value="-DpomFile=dist/jinput-platform.pom" />
+			<arg value="-Dfile=dist/jinput-platform-natives-linux.jar" />
+			<arg value="-Dclassifier=natives-linux" />
+			<arg value="-Pjinputgpg" />
+		</artifact:mvn>
+
+		<artifact:mvn>
+			<arg value="${mvncommand}" />
+			<arg value="-Durl=${repository.url}" />
+			<arg value="-DrepositoryId=${repository.id}" />
+			<arg value="-DpomFile=dist/jinput-platform.pom" />
+			<arg value="-Dfile=dist/jinput-platform-natives-mac.jar" />
+			<arg value="-Dclassifier=natives-mac" />
+			<arg value="-Pjinputgpg" />
+		</artifact:mvn>
+
 	</target>
 </project>
